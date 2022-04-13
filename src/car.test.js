@@ -6,6 +6,7 @@ describe('Car', () => {
 			Car = require('./car')
 		})
 	})
+	
 	describe('new', () => {
 		test('creates instance of Car', () => {
 			expect(new Car().constructor.name).toBe('Car');
@@ -24,7 +25,6 @@ describe('Car', () => {
 	})
 	
 	describe('Car color generator', () => {
-
 		test('generates car color when not provided', () => {
 			Car.COLORS = ['Pink', 'Purple', 'Magenta']
 
@@ -45,7 +45,6 @@ describe('Car', () => {
 	})
 
 	describe('Car instances count', () => {
-
 		test('increases instances count after adding new instance', () => {
 			new Car('Bentley');
 			new Car('BMW');
