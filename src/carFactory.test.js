@@ -14,7 +14,7 @@ describe('CarFactory', () => {
 		});
 
 		test('does allow creation of factory for supported brands only (Fiat, Lancia, Ford, Subaru)', () => {
-			expect(() => new CarFactory('Fiat Bielsko', ['deawoo', ['bmw']])).toThrow(new UnsupportedBrandError("Brand not supported: 'deawoo bmw'"))
+			expect(() => new CarFactory('Fiat Bielsko', ['deawoo', ['bmw']])).toThrow(new UnsupportedBrandError("Brand not supported: 'Deawoo, Bmw'"))
 		});
 	})
 
