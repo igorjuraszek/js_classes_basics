@@ -1,110 +1,82 @@
 class CarFactory {
-  static supportedBrands = ["Fiat", "Lancia", "Ford", "Subaru"];
+  supportedBrands = ["Fiat", "Lancia", "Ford", "Subaru"];
 
-  brandNameCapitalize(brand) {
-    const brandOfCar =
-      brand.slice(0, 1).toUpperCase() + brand.slice(1).toLowerCase();
-    return brandOfCar;
-  }
+  constructor(factoryName, carBrands) {
+    if (!Array.isArray(carBrands)) {
+      carBrands = carBrands.split();
+    }
 
-  constructor(factoryName, brandsSupportedByFactory) {
-    if (Array.isArray(brandsSupportedByFactory)) {
-      const flattenedBrandsSupportedByFactory = brandsSupportedByFactory
-        .flat(Infinity)
-        .map((brand) => this.brandNameCapitalize(brand));
-      const unsupportedBrands = flattenedBrandsSupportedByFactory.filter(
-        (brand) => {
-          return !CarFactory.supportedBrands.includes(
-            this.brandNameCapitalize(brand)
-          );
-        }
-      );
-      if (unsupportedBrands.length !== 0) {
-        const stringOfUnsupportedBrands = unsupportedBrands
-          .map((brand) => this.brandNameCapitalize(brand))
-          .join(", ");
-        throw new UnsupportedBrandError(
-          `Brand not supported: '${stringOfUnsupportedBrands}'`
-        );
-      } else {
-        this.factoryName = `${factoryName} produces: ${flattenedBrandsSupportedByFactory.join(
-          ", "
-        )}`;
-        this.brandsSupportedByFactory = flattenedBrandsSupportedByFactory;
-      }
-    } else {
-      this.factoryName = `${factoryName} produces: ${this.brandNameCapitalize(
-        brandsSupportedByFactory
-      )}`;
-      this.brandsSupportedByFactory = this.brandNameCapitalize(
-        brandsSupportedByFactory
+    const capitalizedBrands = carBrands
+      .flat(Infinity)
+      .map((brand) => this.capitalizeBrandName(brand));
+
+    const unsupportedBrands = capitalizedBrands.filter((brand) => {
+      return !this.supportedBrands.includes(brand);
+    });
+
+    if (unsupportedBrands.length) {
+      throw new UnsupportedBrandError(
+        `Brand not supported: '${this.brandsToString(unsupportedBrands)}'`
       );
     }
+
+    this.factoryName = `${factoryName} produces: ${this.brandsToString(
+      capitalizedBrands
+    )}`;
+    this.brandsSupportedByFactory = capitalizedBrands;
   }
 
-  createCar(brandOfCar = this.brandsSupportedByFactory) {
-    if (Array.isArray(brandOfCar)) {
+  createCar(carBrand = this.brandsSupportedByFactory) {
+    if (Array.isArray(carBrand)) {
+      carBrand = carBrand.toString();
+    }
+    if (
+      !this.brandsSupportedByFactory.includes(
+        this.capitalizeBrandName(carBrand)
+      )
+    ) {
       throw new UnsupportedBrandError(
         "Factory does not have a brand or do not support it"
       );
-    } else {
-      if (
-        this.brandsSupportedByFactory == this.brandNameCapitalize(brandOfCar) ||
-        this.brandsSupportedByFactory.includes(
-          this.brandNameCapitalize(brandOfCar)
-        )
-      ) {
-        const newCar = {
-          brand: this.brandNameCapitalize(brandOfCar),
-        };
-        return newCar;
-      } else {
-        throw new UnsupportedBrandError(
-          "Factory does not have a brand or do not support it"
-        );
-      }
     }
+    return {
+      brand: this.capitalizeBrandName(carBrand),
+    };
   }
 
   createCars(...args) {
-    if (Array.isArray(args[0])) {
-      let arrayOfCars = [];
-      for (const array of args) {
-        let carCount = array[0];
-        let brand = array[1];
-        for (let i = 0; i < carCount; i++) {
-          try {
-            let car = this.createCar(brand);
-            arrayOfCars.push(car);
-          } catch (error) {
-            continue;
-          }
+    if (Number.isInteger(args[0])) {
+      return Array.from(Array(args[0])).map((el, index) => {
+        if (this.brandsSupportedByFactory.length === 1) {
+          return this.createCar();
         }
-      }
-      return arrayOfCars;
-    } else {
-      const countOfCars = args[0];
-      if (Array.isArray(this.brandsSupportedByFactory)) {
-        let arrayOfCars = [];
-
-        for (let i = 0; i < countOfCars; i++) {
-          let car = this.createCar(
-            this.brandsSupportedByFactory[
-              i % this.brandsSupportedByFactory.length
-            ]
-          );
-          arrayOfCars.push(car);
-        }
-        return arrayOfCars;
-      } else {
-        let arrayOfCars = [];
-        for (let i = 0; i < countOfCars; i++) {
-          let car = this.createCar(this.brandsSupportedByFactory);
-          arrayOfCars.push(car);
-        }
-        return arrayOfCars;
-      }
+        let brand =
+          this.brandsSupportedByFactory[
+            index % this.brandsSupportedByFactory.length
+          ];
+        return this.createCar(brand);
+      });
     }
+    return [...args].map((countOfCarsWithBrand) => {
+      let countOfCars = countOfCarsWithBrand[0];
+      let brand = this.capitalizeBrandName(countOfCarsWithBrand[1]);
+
+      if (!this.brandsSupportedByFactory.includes(brand)) {
+        return [];
+      }
+
+      return Array.from(Array(countOfCars)).map(() => {
+        return this.createCar(brand);
+      });
+    });
+  }
+
+  capitalizeBrandName(brand) {
+    return brand.charAt(0).toUpperCase() + brand.toLowerCase().slice(1);
+  }
+
+  brandsToString(arrayOfBrands) {
+    return `${arrayOfBrands.toString().replaceAll(",", ", ")}`;
   }
 }
 
