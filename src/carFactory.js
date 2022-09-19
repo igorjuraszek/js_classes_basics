@@ -8,7 +8,7 @@ class CarFactory {
 
     const capitalizedBrands = carBrands
       .flat(Infinity)
-      .map((brand) => this.capitalizeBrandName(brand));
+      .map((brand) => this.#capitalizeBrandName(brand));
 
     const unsupportedBrands = capitalizedBrands.filter((brand) => {
       return !this.supportedBrands.includes(brand);
@@ -16,11 +16,11 @@ class CarFactory {
 
     if (unsupportedBrands.length) {
       throw new UnsupportedBrandError(
-        `Brand not supported: '${this.brandsToString(unsupportedBrands)}'`
+        `Brand not supported: '${this.#brandsToString(unsupportedBrands)}'`
       );
     }
 
-    this.factoryName = `${factoryName} produces: ${this.brandsToString(
+    this.factoryName = `${factoryName} produces: ${this.#brandsToString(
       capitalizedBrands
     )}`;
     this.brandsSupportedByFactory = capitalizedBrands;
@@ -32,7 +32,7 @@ class CarFactory {
     }
     if (
       !this.brandsSupportedByFactory.includes(
-        this.capitalizeBrandName(carBrand)
+        this.#capitalizeBrandName(carBrand)
       )
     ) {
       throw new UnsupportedBrandError(
@@ -40,13 +40,13 @@ class CarFactory {
       );
     }
     return {
-      brand: this.capitalizeBrandName(carBrand),
+      brand: this.#capitalizeBrandName(carBrand),
     };
   }
 
   createCars(...args) {
     if (Number.isInteger(args[0])) {
-      return Array.from(Array(args[0])).map((el, index) => {
+      return Array.from(Array(args[0])).map((_, index) => {
         if (this.brandsSupportedByFactory.length === 1) {
           return this.createCar();
         }
@@ -57,25 +57,27 @@ class CarFactory {
         return this.createCar(brand);
       });
     }
-    return [...args].map((countOfCarsWithBrand) => {
-      let countOfCars = countOfCarsWithBrand[0];
-      let brand = this.capitalizeBrandName(countOfCarsWithBrand[1]);
+    return [...args]
+      .map((countOfCarsWithBrand) => {
+        let countOfCars = countOfCarsWithBrand[0];
+        let brand = this.#capitalizeBrandName(countOfCarsWithBrand[1]);
 
-      if (!this.brandsSupportedByFactory.includes(brand)) {
-        return [];
-      }
+        if (!this.brandsSupportedByFactory.includes(brand)) {
+          return [];
+        }
 
-      return Array.from(Array(countOfCars)).map(() => {
-        return this.createCar(brand);
-      });
-    });
+        return Array.from({ length: countOfCars }).map(() => {
+          return this.createCar(brand);
+        });
+      })
+      .flat();
   }
 
-  capitalizeBrandName(brand) {
+  #capitalizeBrandName(brand) {
     return brand.charAt(0).toUpperCase() + brand.toLowerCase().slice(1);
   }
 
-  brandsToString(arrayOfBrands) {
+  #brandsToString(arrayOfBrands) {
     return `${arrayOfBrands.toString().replaceAll(",", ", ")}`;
   }
 }
